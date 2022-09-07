@@ -2,7 +2,6 @@ package com.github.miniplayer.ui.presentation
 
 import android.app.Application
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -53,38 +52,39 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         when (event) {
             is UiEvent.ItemClick -> {
                 val item = event.item
-                lastPlayedItem?.let {
-                    if (it.index != item.index) {
+                lastPlayedItem?.let { oldItem ->
+                    if (oldItem.resource != item.resource) {
                         stopSong()
-                        _itemsState[it.index] = it.copy(
-                            taskStatus = TaskStatus.STOPPED
-                        )
+                        stateChange(oldItem, TaskStatus.STOPPED)
                     }
                 }
 
                 when (item.taskStatus) {
                     TaskStatus.STOPPED -> {
-                        _itemsState[item.index] = itemsState[item.index].copy(
-                            taskStatus = TaskStatus.PLAYING
-                        )
+                        stateChange(item, TaskStatus.PLAYING)
                         playSong(item.resource)
                     }
                     TaskStatus.PLAYING -> {
-                        _itemsState[item.index] = itemsState[item.index].copy(
-                            taskStatus = TaskStatus.PAUSED
-                        )
+                        stateChange(item, TaskStatus.PAUSED)
                         pauseSong()
                     }
                     TaskStatus.PAUSED -> {
-                        _itemsState[item.index] = itemsState[item.index].copy(
-                            taskStatus = TaskStatus.PLAYING
-                        )
+                        stateChange(item, TaskStatus.PLAYING)
                         resumeSong()
                     }
                 }
                 lastPlayedItem = event.item
             }
         }
+    }
+
+    private fun stateChange(item: Song, state: TaskStatus) {
+        val position = _itemsState.indexOfFirst { element ->
+            element.resource == item.resource
+        }
+        _itemsState[position] = itemsState[position].copy(
+            taskStatus = state
+        )
     }
 
     lateinit var mediaPlayer: MediaPlayer
