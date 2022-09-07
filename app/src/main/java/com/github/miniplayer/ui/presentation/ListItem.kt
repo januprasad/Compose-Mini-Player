@@ -31,7 +31,7 @@ fun ListItem(
             .height(60.dp)
             .background(background)
             .clickable {
-                onItemClick(item.index)
+                onItemClick(item.resource)
             },
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically

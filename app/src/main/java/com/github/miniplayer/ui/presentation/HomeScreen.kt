@@ -26,7 +26,7 @@ fun HomeScreen(
         items(
             items = state,
             key = {
-                it.index
+                it.resource
             }
         ) { item ->
             ListItem(
