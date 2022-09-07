@@ -53,10 +53,10 @@ fun ListItem(
             /** show indicator only for loading state */
             when (item.taskStatus) {
                 TaskStatus.PLAYING -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(30.dp),
-                        strokeWidth = 3.dp,
-                        color = Color.Magenta
+                    Icon(
+                        painterResource(id = com.github.miniplayer.R.drawable.pause),
+                        "action icon",
+                        tint = Color.Green
                     )
                 }
                 TaskStatus.PAUSED -> {

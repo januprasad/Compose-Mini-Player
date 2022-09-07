@@ -2,6 +2,7 @@ package com.github.miniplayer.ui.presentation
 
 import android.app.Application
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +34,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             resource = R.raw.pachchai,
             trackName = "Pachai"
         ),
+        Song(
+            4,
+            resource = R.raw.theme2,
+            trackName = "Theme2"
+        )
     )
 
     private val _itemsState = mutableStateListOf<Song>()
@@ -56,21 +62,25 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
 
-                if (item.taskStatus == TaskStatus.STOPPED) {
-                    _itemsState[item.index] = itemsState[item.index].copy(
-                        taskStatus = TaskStatus.PLAYING
-                    )
-                    playSong(item.resource)
-                } else if (item.taskStatus == TaskStatus.PLAYING) {
-                    _itemsState[item.index] = itemsState[item.index].copy(
-                        taskStatus = TaskStatus.PAUSED
-                    )
-                    pauseSong()
-                } else if (item.taskStatus == TaskStatus.PAUSED) {
-                    _itemsState[item.index] = itemsState[item.index].copy(
-                        taskStatus = TaskStatus.PLAYING
-                    )
-                    resumeSong()
+                when (item.taskStatus) {
+                    TaskStatus.STOPPED -> {
+                        _itemsState[item.index] = itemsState[item.index].copy(
+                            taskStatus = TaskStatus.PLAYING
+                        )
+                        playSong(item.resource)
+                    }
+                    TaskStatus.PLAYING -> {
+                        _itemsState[item.index] = itemsState[item.index].copy(
+                            taskStatus = TaskStatus.PAUSED
+                        )
+                        pauseSong()
+                    }
+                    TaskStatus.PAUSED -> {
+                        _itemsState[item.index] = itemsState[item.index].copy(
+                            taskStatus = TaskStatus.PLAYING
+                        )
+                        resumeSong()
+                    }
                 }
                 lastPlayedItem = event.item
             }
