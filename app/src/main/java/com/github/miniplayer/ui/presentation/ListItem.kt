@@ -54,21 +54,21 @@ fun ListItem(
             when (item.taskStatus) {
                 TaskStatus.PLAYING -> {
                     Icon(
-                        painterResource(id = com.github.miniplayer.R.drawable.pause),
-                        "action icon",
-                        tint = Color.Green
-                    )
-                }
-                TaskStatus.PAUSED -> {
-                    Icon(
-                        painterResource(id = com.github.miniplayer.R.drawable.play),
+                        painterResource(id = com.github.miniplayer.R.drawable.ic_pause),
                         "action icon",
                         tint = Color.Red
                     )
                 }
+                TaskStatus.PAUSED -> {
+                    Icon(
+                        painterResource(id = com.github.miniplayer.R.drawable.ic_play),
+                        "action icon",
+                        tint = Color.Green
+                    )
+                }
                 TaskStatus.STOPPED -> {
                     Icon(
-                        painterResource(id = com.github.miniplayer.R.drawable.play),
+                        painterResource(id = com.github.miniplayer.R.drawable.ic_play),
                         "action icon",
                         tint = Color.Gray
                     )
