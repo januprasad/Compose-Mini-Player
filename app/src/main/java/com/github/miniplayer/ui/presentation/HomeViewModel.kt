@@ -2,14 +2,19 @@ package com.github.miniplayer.ui.presentation
 
 import android.app.Application
 import android.media.MediaPlayer
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.miniplayer.R
 import com.github.miniplayer.ui.model.Song
 import com.github.miniplayer.ui.model.TaskStatus
 import com.github.miniplayer.ui.state.UiEvent
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val musicPlayList = listOf(
@@ -41,6 +46,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     private val _itemsState = mutableStateListOf<Song>()
+
+    //    val songState: MutableState<SongState> = mutableStateOf(SongState())
+    var totalDuration: MutableState<Float> = mutableStateOf(0.0f)
+    val currentTime: MutableState<Float> = mutableStateOf(0.0f)
     val itemsState: List<Song> = _itemsState
     var lastPlayedItem: Song? = null
 
@@ -54,7 +63,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 val item = event.item
                 lastPlayedItem?.let { oldItem ->
                     if (oldItem.resource != item.resource) {
-                        stopSong()
+                        stopSong(oldItem)
                         stateChange(oldItem, TaskStatus.STOPPED)
                     }
                 }
@@ -62,7 +71,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 when (item.taskStatus) {
                     TaskStatus.STOPPED -> {
                         stateChange(item, TaskStatus.PLAYING)
-                        playSong(item.resource)
+                        playSong(item)
                     }
                     TaskStatus.PLAYING -> {
                         stateChange(item, TaskStatus.PAUSED)
@@ -70,7 +79,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     }
                     TaskStatus.PAUSED -> {
                         stateChange(item, TaskStatus.PLAYING)
-                        resumeSong()
+                        resumeSong(item)
                     }
                 }
                 lastPlayedItem = event.item
@@ -87,12 +96,35 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    private fun seekSong(item: Song, currentPosition: Float, totalDuration: Int) {
+        val position = _itemsState.indexOfFirst { element ->
+            element.resource == item.resource
+        }
+        _itemsState[position] = itemsState[position].copy(
+            currentTime = currentPosition,
+            totalDuration = totalDuration.toFloat()
+        )
+    }
+
     lateinit var mediaPlayer: MediaPlayer
 
-    private fun playSong(id: Int) {
+    private fun updateProgress(song: Song) {
+        totalDuration.value = mediaPlayer.duration.toFloat()
+        val total = mediaPlayer.duration
+        viewModelScope.launch(Dispatchers.IO) {
+            while (mediaPlayer.isPlaying && currentTime.value < total) {
+                delay(1000)
+                currentTime.value = mediaPlayer.currentPosition.toFloat()
+                seekSong(song, currentTime.value, total)
+            }
+        }
+    }
+
+    private fun playSong(song: Song) {
 //        viewModelScope.launch(Dispatchers.IO) {
-        mediaPlayer = MediaPlayer.create(getApplication(), id)
+        mediaPlayer = MediaPlayer.create(getApplication(), song.resource)
         mediaPlayer.start()
+        updateProgress(song)
 //        }
     }
 
@@ -102,16 +134,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 //        }
     }
 
-    private fun resumeSong() {
+    private fun resumeSong(item: Song) {
 //        viewModelScope.launch(Dispatchers.IO) {
         mediaPlayer.start()
+        updateProgress(item)
 //        }
     }
 
-    private fun stopSong() {
+    private fun stopSong(song: Song) {
 //        viewModelScope.launch(Dispatchers.IO) {
+        seekSong(song, 0.0f, 0)
         mediaPlayer.stop()
         mediaPlayer.release()
+
 //        }
     }
 
