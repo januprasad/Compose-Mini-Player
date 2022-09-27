@@ -2,13 +2,12 @@ package com.github.miniplayer.ui.presentation
 
 import android.app.Application
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.miniplayer.R
+import com.github.miniplayer.musicPlayList
 import com.github.miniplayer.ui.model.Song
 import com.github.miniplayer.ui.model.TaskStatus
 import com.github.miniplayer.ui.state.UiEvent
@@ -16,39 +15,22 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
-    private val musicPlayList = listOf(
-        Song(
-            0,
-            resource = R.raw.lala,
-            trackName = "Lala"
-        ),
-        Song(
-            1,
-            resource = R.raw.mylife,
-            trackName = "My Life"
-        ),
-        Song(
-            2,
-            resource = R.raw.stereo,
-            trackName = "Stereo"
-        ),
-        Song(
-            3,
-            resource = R.raw.touch,
-            trackName = "Touch"
-        )
-    )
+class HomeViewModel @Inject constructor(application: Application) : AndroidViewModel(application) {
 
+    /**
+     * listSongs observe composable.
+     */
     private val _itemsState = mutableStateListOf<Song>()
+    val itemsState: List<Song> = _itemsState
 
-    //    val songState: MutableState<SongState> = mutableStateOf(SongState())
     var totalDuration: MutableState<Float> = mutableStateOf(0.0f)
     val currentTime: MutableState<Float> = mutableStateOf(0.0f)
-    val itemsState: List<Song> = _itemsState
+
     var lastPlayedItem: Song? = null
 
+    //    val songState: MutableState<SongState> = mutableStateOf(SongState())
     init {
         _itemsState.addAll(musicPlayList)
     }
@@ -81,6 +63,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 lastPlayedItem = event.item
             }
+
+            is UiEvent.SeekAudio -> {
+                seekAudio(event.item)
+            }
         }
     }
 
@@ -106,7 +92,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     lateinit var mediaPlayer: MediaPlayer
     var playerController: Job? = null
     private fun updateProgress(song: Song) {
-        mediaPlayer?.let { mediaPlayer ->
+        mediaPlayer.let { mediaPlayer ->
             totalDuration.value = mediaPlayer.duration.toFloat()
             val total = mediaPlayer.duration
             playerController = viewModelScope.launch {
@@ -159,8 +145,24 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 //        }
     }
 
+    fun seekAudio(song: Song) {
+//        lastPlayedItem?.let { oldItem ->
+//            if (oldItem.resource == song.resource) {
+        updateMediaPlayer(song.currentTime)
+//            }
+//        }
+    }
+
+    private fun updateMediaPlayer(position: Float) {
+        mediaPlayer.let { mediaPlayer ->
+            viewModelScope.launch {
+                mediaPlayer.seekTo(position.toInt())
+            }
+        }
+    }
     override fun onCleared() {
         super.onCleared()
         viewModelScope.cancel()
     }
+
 }

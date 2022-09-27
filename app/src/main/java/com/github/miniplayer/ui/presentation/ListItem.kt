@@ -19,7 +19,7 @@ import com.github.miniplayer.ui.model.TaskStatus
 
 
 @Composable
-fun ListItem(
+fun PlayerButtons(
     item: Song,
     background: Color,
     onItemClick: (Int) -> Unit
