@@ -138,6 +138,7 @@ class HomeViewModel @Inject constructor(application: Application) : AndroidViewM
         mediaPlayer.let { mediaPlayer ->
             mediaPlayer.pause()
             mediaPlayer.stop()
+            mediaPlayer.reset()
             mediaPlayer.release()
             seekSong(song, 0.0f, 0)
         }

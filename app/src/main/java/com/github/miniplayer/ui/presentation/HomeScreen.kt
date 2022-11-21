@@ -58,7 +58,7 @@ fun PlayerSlider(item: Song, seekAudio: (Song) -> Unit) {
             .padding(start = 20.dp)
     ) {
         Slider(
-            value = item.currentTime.toFloat(),
+            value = item.currentTime,
             onValueChange = {
                 if (item.taskStatus == TaskStatus.PLAYING) {
                     val song = item.copy(
@@ -67,7 +67,7 @@ fun PlayerSlider(item: Song, seekAudio: (Song) -> Unit) {
                     seekAudio(song)
                 }
             },
-            valueRange = 0f..item.totalDuration.toFloat(),
+            valueRange = 0f..item.totalDuration,
             colors = SliderDefaults.colors(
                 thumbColor = Color.Red,
                 activeTrackColor = Color.Green
